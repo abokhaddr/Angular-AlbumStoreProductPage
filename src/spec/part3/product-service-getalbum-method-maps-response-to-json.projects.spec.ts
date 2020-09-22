@@ -1,74 +1,159 @@
-import { TestBed, async, inject } from '@angular/core/testing';
+ const assert = require("chai").assert;
+const helpers = require("../helpers");
+const { readFileSync } = require("fs");
+const { tsquery } = require("@phenomnomnominal/tsquery");
 
-import { AppModule } from '../../app/app.module';
+describe("ProductService", () => {
+  it("should map the result of get request to json with rxjs map function @product-service-getalbum-method-maps-response-to-json", () => {
+    const fileName = "src/app/product.service.ts";
 
-import { Http, BaseRequestOptions, Response, ResponseOptions, RequestOptions } from '@angular/http';
+    helpers.readFile(
+      fileName,
+      "The ProductService hasn't been created yet. - have you run the `ng` command to generate it yet?"
+    );
 
-import { MockBackend, MockConnection } from '@angular/http/testing';
+    //https://medium.com/@phenomnominal/easier-typescript-tooling-with-tsquery-d74f04f2b29d
+    const ast = tsquery.ast(readFileSync(fileName).toString());
+    const privateDeclaration = tsquery(
+      ast,
+      "PropertyDeclaration PrivateKeyword"
+    );
 
-import { Observable } from 'rxjs/Observable';
+    assert(
+      privateDeclaration.length > 0,
+      "It doesn't look like you are declaring `private _albumUrl` keyword and assigning the contents of the `album.json` file to it."
+    );
 
-import { Routes } from '@angular/router';
+    const albumUrlDeclaration = tsquery(
+      ast,
+      "PropertyDeclaration Identifier[name=_albumUrl]"
+    );
 
-import { RouterTestingModule } from '@angular/router/testing';
+    assert(
+      albumUrlDeclaration.length > 0,
+      "It doesn't look like you are declaring `private _albumUrl` keyword and assigning the contents of the `album.json` file to it."
+    );
 
-let productServiceExists = false;
-let ProductService;
-try {
-  ProductService = require('../../app/product.service.ts').ProductService;
-  productServiceExists = true;
-} catch (e) {
-  productServiceExists = false;
-}
+    const albumJsonFile = tsquery(
+      ast,
+      "PropertyDeclaration StringLiteral[value='../assets/album.json']"
+    );
 
-let json = require('../../assets/album.json');
+    assert(
+      albumJsonFile.length > 0,
+      "It doesn't look like you are declaring `private _albumUrl` keyword and assigning the contents of the `album.json` file to it."
+    );
 
-describe('ProductService', () => {
+    const getAlbumMethod = tsquery(ast, 'Identifier[name="getAlbum"]');
 
-  let product_service;
-  let mock_backend;
+    assert(
+      getAlbumMethod.length > 0,
+      "The ProductService doesn't have a method named `getAlbum()` yet."
+    );
 
-  beforeEach(async(() => {
+    const returnStatement = tsquery(
+      ast,
+      "MethodDeclaration:has(Identifier[name=getAlbum]) ReturnStatement"
+    );
 
-    TestBed.configureTestingModule({
-      imports: [AppModule, RouterTestingModule.withRoutes([])],
-      providers: [ProductService, MockBackend, BaseRequestOptions,
-        {
-          provide: Http,
-          useFactory: (mockBackend: MockBackend, defaultOptions: RequestOptions) => {
-            return new Http(mockBackend, defaultOptions);
-          },
-          useClass: Http,
-          deps: [MockBackend, BaseRequestOptions]
-        }
-      ]
-    });
-  }));
+    assert(
+      returnStatement.length > 0,
+      "The `getAlbum()` doesn't have a `return` statement yet."
+    );
 
-  beforeEach(inject([ProductService, MockBackend], (productService, mockBackend) => {
-    product_service = productService;
-    mock_backend = mockBackend;
-  }));
+    const thisStatement = tsquery(
+      ast,
+      "MethodDeclaration:has(Identifier[name=getAlbum]) CallExpression ThisKeyword"
+    );
 
-  it(`should map the result of get request to json with rxjs map function @product-service-getalbum-method-maps-response-to-json`, async(() => {
-    mock_backend.connections.subscribe((connection: MockConnection) => {
-      let options = new ResponseOptions({
-        body: json
-      });
-      connection.mockRespond(new Response(options));
-    });
-    if (product_service.getAlbum == undefined) {
-      since('The ProductService doesn\'t have a method named `getAlbum()` yet.').expect(0).toBe(1);
-    } else if (product_service.getAlbum != undefined && product_service.getAlbum(1) == undefined) {
-      since('The `getAlbum()` method exists, but it\'s not returning the result of a call to `this._http.get()` and passing `this._albumUrl` as a parameter.').expect(0).toBe(1);
-    } else {
-      product_service.getAlbum(null).subscribe((response) => {
-        since('It looks like you\'re not returning the getAlbum method\'s response as JSON.').expect(response._body).toBeUndefined();
-        since('Your `getAlbum` method is returning a JSON response, but not the correct JSON.  Are you sure your service class is setup correctly?').expect(response.id).toEqual(1);
-        since('Your `getAlbum` method is returning a JSON response, but not the correct JSON.  Are you sure your service class is setup correctly?').expect(response.artist).toEqual('The Prependers');
-        since('Your `getAlbum` method is returning a JSON response, but not the correct JSON.  Are you sure your service class is setup correctly?').expect(response.album.name).toEqual('Opacity Zero');
-      }
-      );
-    }
-  }));
+    assert(
+      thisStatement.length > 0,
+      "It doesn't look like you're returning the result of calling `this._http.get()` and passing `this._albumUrl` as a parameter."
+    );
+
+    const httpGet = tsquery(
+      ast,
+      "MethodDeclaration:has(Identifier[name=getAlbum]) CallExpression PropertyAccessExpression Identifier[name=_http]"
+    );
+
+    assert(
+      httpGet.length > 0,
+      "It doesn't look like you're returning the result of calling `this._http.get()`."
+    );
+
+    const getMethod = tsquery(
+      ast,
+      "MethodDeclaration:has(Identifier[name=getAlbum])  PropertyAccessExpression:has(Identifier[name=get])"
+    );
+
+    assert(
+      getMethod.length > 0,
+      "It looks like the `getAlbum` method is not sending a `GET` request."
+    );
+
+    assert(
+      thisStatement.length > 1,
+      "It doesn't look like you're returning the result of calling `this._http.get()` and passing `this._albumUrl` as a parameter."
+    );
+
+    const albumUrlArg = tsquery(
+      ast,
+      "MethodDeclaration:has(Identifier[name=getAlbum]) CallExpression PropertyAccessExpression Identifier[name=_albumUrl]"
+    );
+
+    assert(
+      albumUrlArg.length > 0,
+      "It doesn't look like you're passing `this._albumUrl` as an argument to the `this._http.get()` method call."
+    );
+
+    const importRxjs = tsquery(
+      ast,
+      "ImportDeclaration StringLiteral[value=rxjs/add/operator/map]"
+    );
+
+    assert(
+      importRxjs.length > 0,
+      "The ProductService isn't importing `map` from `rxjs/add/operator/map`."
+    );
+
+    const mapMethod = tsquery(
+      ast,
+      "MethodDeclaration:has(Identifier[name=getAlbum]) CallExpression Identifier[name=map]"
+    );
+
+    assert(
+      mapMethod.length > 0,
+      "It doesn't look like that you're chaining a `map` method after `this._http.get(this._albumUrl)`."
+    );
+
+    const responseParameter = tsquery(
+      ast,
+      "MethodDeclaration:has(Identifier[name=getAlbum]) CallExpression:has(Identifier[name=map]) Parameter Identifier[name=response]"
+    );
+
+    assert(
+      responseParameter.length > 0,
+      "The `map` method should be taking `response` as an argument of its callback function."
+    );
+
+    const responseReturn = tsquery(
+      ast,
+      "MethodDeclaration:has(Identifier[name=getAlbum]) CallExpression:has(Identifier[name=map]) PropertyAccessExpression Identifier[name=response]"
+    );
+
+    assert(
+      responseReturn.length > 0,
+      "The `map` method should be returning `response.json`. "
+    );
+
+    const jsonReturn = tsquery(
+      ast,
+      "MethodDeclaration:has(Identifier[name=getAlbum]) CallExpression:has(Identifier[name=map]) PropertyAccessExpression Identifier[name=json]"
+    );
+
+    assert(
+      jsonReturn.length > 0,
+      "The `map` method should be returning `response.json`. "
+    );
+  });
 });
