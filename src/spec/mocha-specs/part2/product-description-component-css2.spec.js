@@ -1,4 +1,4 @@
-const assert = require("chai").assert;
+ const assert = require("chai").assert;
 const helpers = require("../helpers");
 const cssom = require("cssom");
 const _ = require("lodash");
