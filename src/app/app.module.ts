@@ -1,4 +1,4 @@
-import { BrowserModule } from '@angular/platform-browser';
+ import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpModule } from '@angular/http';
@@ -10,7 +10,7 @@ import { ProductDescriptionComponent } from './product-description/product-descr
 @NgModule({
   declarations: [
     AppComponent,
-    
+    ProductPageComponent
     ProductPageComponent,
     ProductDescriptionComponent
   ],
