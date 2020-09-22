@@ -1,80 +1,109 @@
-import { TestBed, async, inject } from '@angular/core/testing';
+ const assert = require("chai").assert;
+const helpers = require("../helpers");
+const { readFileSync } = require("fs");
+const { tsquery } = require("@phenomnomnominal/tsquery");
 
-import { AppModule } from '../../app/app.module';
+describe("ProductService", () => {
+  it("should return contents of _albumUrl when getAlbum method called @product-service-getalbum-method-returns-album-json", () => {
+    const fileName = "src/app/product.service.ts";
 
-import { BrowserModule } from '@angular/platform-browser';
+    helpers.readFile(
+      fileName,
+      "The ProductService hasn't been created yet. - have you run the `ng` command to generate it yet?"
+    );
 
-import { Http, BaseRequestOptions, Response, ResponseOptions, RequestOptions } from '@angular/http';
+    //https://medium.com/@phenomnominal/easier-typescript-tooling-with-tsquery-d74f04f2b29d
+    const ast = tsquery.ast(readFileSync(fileName).toString());
+    const privateDeclaration = tsquery(
+      ast,
+      "PropertyDeclaration PrivateKeyword"
+    );
 
-import { MockBackend, MockConnection } from '@angular/http/testing';
+    assert(
+      privateDeclaration.length > 0,
+      "It doesn't look like you are declaring `private _albumUrl` keyword and assigning the contents of the `album.json` file to it."
+    );
 
-import { Routes } from '@angular/router';
+    const albumUrlDeclaration = tsquery(
+      ast,
+      "PropertyDeclaration Identifier[name=_albumUrl]"
+    );
 
-import { RouterTestingModule } from '@angular/router/testing';
+    assert(
+      albumUrlDeclaration.length > 0,
+      "It doesn't look like you are declaring `private _albumUrl` keyword and assigning the contents of the `album.json` file to it."
+    );
 
-let productServiceExists = false;
-let ProductService;
-try {
-  ProductService = require('../../app/product.service.ts').ProductService;
-  productServiceExists = true;
-} catch (e) {
-  productServiceExists = false;
-}
+    const albumJsonFile = tsquery(
+      ast,
+      "PropertyDeclaration StringLiteral[value='../assets/album.json']"
+    );
 
-class AProductService {
-  getAlbum() {
+    assert(
+      albumJsonFile.length > 0,
+      "It doesn't look like you are declaring `private _albumUrl` keyword and assigning the contents of the `album.json` file to it."
+    );
 
-  }
-}
+    const getAlbumMethod = tsquery(ast, 'Identifier[name="getAlbum"]');
 
-describe('ProductService', () => {
+    assert(
+      getAlbumMethod.length > 0,
+      "The ProductService doesn't have a method named `getAlbum()` yet."
+    );
 
-  let product_service;
-  let ProvidedService;
-  let mock_backend;
+    const returnStatement = tsquery(
+      ast,
+      "MethodDeclaration:has( Identifier[name=getAlbum] ) ReturnStatement"
+    );
 
-  if(productServiceExists) {
-    ProvidedService = ProductService
-  } else {
-    ProvidedService = AProductService;
-  }
+    assert(
+      returnStatement.length > 0,
+      "The `getAlbum()` doesn't have a `return` statement yet."
+    );
 
-  beforeEach(async(() => {
-  
-    TestBed.configureTestingModule({
-      imports: [AppModule, RouterTestingModule.withRoutes([])],
-      providers: [ProvidedService, MockBackend, BaseRequestOptions,
-        {
-          provide: Http,
-          useFactory: (mockBackend: MockBackend, defaultOptions: RequestOptions) => {
-            return new Http(mockBackend, defaultOptions);
-          },
-          deps: [MockBackend, BaseRequestOptions]
-        }
-      ]
-    }).compileComponents();
-  }));
+    const thisStatement = tsquery(
+      ast,
+      "MethodDeclaration:has( Identifier[name=getAlbum] ) CallExpression ThisKeyword"
+    );
 
-  beforeEach(inject([ProvidedService, MockBackend], (providedService, mockBackend) => {
-    product_service = providedService;
-    mock_backend = mockBackend;
-  }));
+    assert(
+      thisStatement.length > 0,
+      "It doesn't look like you're returning the result of calling `this._http.get()` and passing `this._albumUrl` as a parameter."
+    );
 
-  it(`should return contents of _albumUrl when getAlbum method called @product-service-getalbum-method-returns-album-json`, async(() => {
-    since('The ProductService hasn\'t been created yet.').expect(productServiceExists).toBe(true);
-    mock_backend.connections.subscribe((connection: MockConnection) => {
-      since('It looks like the `getAlbum` method is not requesting the contents of the `album.json` file.').expect(connection.request.url).toEqual('../assets/album.json');
-      since('It looks like the `getAlbum` method is not sending a `GET` request.').expect(connection.request.method).toEqual(0);
-      let options = new ResponseOptions({});
-      connection.mockRespond(new Response(options));
-    });
-    if(product_service.getAlbum == undefined) {
-      since('The ProductService doesn\'t have a method named `getAlbum()` yet.').expect(0).toBe(1);
-    } else if(product_service.getAlbum != undefined && product_service.getAlbum.subscribe == undefined) {
-      let ps = product_service.getAlbum(null);
-      since('It doesn\'t look like you\'re returning the result of calling `this._http.get()` and passing `this._albumUrl` as a parameter.').expect(product_service._http._backend.connectionsArray.length).toBeGreaterThan(0);
-      since('It doesn\'t look like you\'re returning the result of calling `this._http.get()` and passing `this._albumUrl` as a parameter.').expect(product_service._http._backend.connectionsArray[0].request.url).toBe('../assets/album.json');        
-    } else {
-    }
-  }));
+    const httpGet = tsquery(
+      ast,
+      "MethodDeclaration:has( Identifier[name=getAlbum] ) CallExpression PropertyAccessExpression Identifier[name=_http]"
+    );
+
+    assert(
+      httpGet.length > 0,
+      "It doesn't look like you're returning the result of calling `this._http.get()`."
+    );
+
+    const getMethod = tsquery(
+      ast,
+      "MethodDeclaration:has( Identifier[name=getAlbum] )  PropertyAccessExpression:has(Identifier[name=get]) "
+    );
+
+    assert(
+      getMethod.length > 0,
+      "It looks like the `getAlbum` method is not sending a `GET` request."
+    );
+
+    assert(
+      thisStatement.length > 1,
+      "It doesn't look like you're returning the result of calling `this._http.get()` and passing `this._albumUrl` as a parameter."
+    );
+
+    const albumUrlArg = tsquery(
+      ast,
+      "MethodDeclaration:has( Identifier[name=getAlbum] ) CallExpression PropertyAccessExpression Identifier[name=_albumUrl]"
+    );
+
+    assert(
+      albumUrlArg.length > 0,
+      "It doesn't look like you're passing `this._albumUrl` as an argument to the `this._http.get()` method call."
+    );
+  });
 });
