@@ -1,4 +1,4 @@
-const assert = require("chai").assert;
+ const assert = require("chai").assert;
 const parse5 = require("parse5");
 const cheerio = require("cheerio");
 const helpers = require("../helpers");
@@ -111,5 +111,5 @@ describe("ProductTracklisting", () => {
       trackPrice.text().match(/\s*{{\s*track.trackPrice\s*}}\s*/),
       "The ProductTrackinglistComponent should have a `span` with a class of `price-and-buy` with a text of `{{track.trackPrice}}`."
     );
-});
   });
+});
