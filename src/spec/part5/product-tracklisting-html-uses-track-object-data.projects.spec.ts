@@ -1,150 +1,114 @@
-import { TestBed, async, inject } from '@angular/core/testing';
+ const assert = require("chai").assert;
+const parse5 = require("parse5");
+const cheerio = require("cheerio");
+const helpers = require("../helpers");
 
-import { AppModule } from '../../app/app.module';
+describe("ProductTracklisting", () => {
+  it("should use data from the albumInfo.tracks property in the HTML template @product-tracklisting-html-uses-track-object-data", () => {
+    let tracklisting;
+    let element;
+    const productTracklistingFile = helpers.readFile(
+      "src/app/product-tracklisting/product-tracklisting.component.html"
+    );
+    const productTracklistingNodes = helpers.parseFile(productTracklistingFile);
+    productTracklistingNodes[0].attrs.find(
+      attr => (tracklisting = attr.value.match(/tracklisting/))
+    );
+    const productListing = parse5.serialize(productTracklistingNodes[0]);
+    let $ = cheerio.load(productListing);
+    const li = $("li");
+    const trackNumber = $(".track-number");
+    const trackName = $(".track-name");
+    const trackTime = $(".track-time");
+    const trackPrice = $(".price-and-buy");
 
-import { Http, BaseRequestOptions, Response, ResponseOptions, RequestOptions } from '@angular/http';
+    helpers.readFile(
+      "src/app/product-tracklisting/product-tracklisting.component.html",
+      "The ProductTracklistingComponent doesn't exist - have you run the `ng` command to generate it yet?"
+    );
 
-import { MockBackend, MockConnection } from '@angular/http/testing';
-
-import { Observable } from 'rxjs/Observable';
-
-import { Routes } from '@angular/router';
-
-import { RouterTestingModule } from '@angular/router/testing';
-
-let json = require('../../assets/album.json');
-
-let productTracklistingExists = false;
-let ProductTracklistingComponent;
-try {
-  ProductTracklistingComponent = require('../../app/product-tracklisting/product-tracklisting.component.ts').ProductTracklistingComponent;
-  productTracklistingExists = true;
-} catch (e) {
-  productTracklistingExists = false;
-}
-
-let productServiceExists = false;
-let ProductService;
-try {
-  ProductService = require('../../app/product.service.ts').ProductService;
-  productServiceExists = true;
-} catch (e) {
-  productServiceExists = false;
-}
-
-describe('ProductTracklisting', () => {
-
-  let product_service;
-  let mock_backend;
-
-  beforeEach(async(() => {
-
-    TestBed.configureTestingModule({
-      imports: [AppModule, RouterTestingModule.withRoutes([])],
-      providers: [ProductService, MockBackend, BaseRequestOptions,
-        {
-          provide: Http,
-          useFactory: (mockBackend: MockBackend, defaultOptions: RequestOptions) => {
-            return new Http(mockBackend, defaultOptions);
-          },
-          useClass: Http,
-          deps: [MockBackend, BaseRequestOptions]
-        }
-      ]
-    });
-  }));
-
-  beforeEach(inject([ProductService, MockBackend], (productService, mockBackend) => {
-    product_service = productService;
-    mock_backend = mockBackend;
-  }));
-
-  it(`should use track number data from the albumInfo.tracks property in the HTML template @product-tracklisting-html-uses-track-object-data`, async(() => {
-    since('The ProductTracklistingComponent doesn\'t exist - have you run the `ng` command to generate it yet?').expect(productTracklistingExists).toBe(true);
-
-    mock_backend.connections.subscribe((connection: MockConnection) => {
-      let options = new ResponseOptions({
-        body: json
-      });
-      connection.mockRespond(new Response(options));
-    });
-
-    const ProductTracklistingFixture = TestBed.createComponent(ProductTracklistingComponent);
-    ProductTracklistingFixture.detectChanges();
-
-    if (ProductTracklistingFixture.debugElement.nativeElement.querySelectorAll('.track-number').length > 1) {
-      let tracksHtml = ProductTracklistingFixture.debugElement.nativeElement.querySelectorAll('.track-number').forEach((element, index) => {
-        since('The track number in your HTML template doesn\'t match the track number in the JSON response.').expect(element.innerText).toEqual(json.album.tracks[index].trackNumber.toString());
-      });
-    } else {
-      since('The tracklisting data is not being populated by a JSON response yet.').expect(0).toBe(1);
+    try {
+      element = productTracklistingNodes[0].tagName;
+    } catch (e) {
+      assert(
+        "The ProductTracklistingComponent's HTML file doesn't contain a `div` tag with a class of `tracklisting`."
+      );
     }
-  }));
 
-  it(`should use track name data from the albumInfo.tracks property in the HTML template @product-tracklisting-html-uses-track-object-data`, async(() => {
-    since('The ProductTracklistingComponent doesn\'t exist - have you run the `ng` command to generate it yet?').expect(productTracklistingExists).toBe(true);
+    assert(
+      element !== "p",
+      "It looks like you have not replaced the `<p></p>` element with a `div` tag with a class of `tracklisting`."
+    );
 
-    mock_backend.connections.subscribe((connection: MockConnection) => {
-      let options = new ResponseOptions({
-        body: json
-      });
-      connection.mockRespond(new Response(options));
-    });
+    assert(
+      element === "div",
+      "The ProductTracklistingComponent's HTML file doesn't contain a `div` tag."
+    );
 
-    const ProductTracklistingFixture = TestBed.createComponent(ProductTracklistingComponent);
-    ProductTracklistingFixture.detectChanges();
+    assert(
+      !!tracklisting,
+      "It looks like the ProductTracklistingComponent does not contain the `tracklisting` `<div></div>` from the ProductPageComponent."
+    );
 
-    if (ProductTracklistingFixture.debugElement.nativeElement.querySelectorAll('.track-number').length > 1) {
-      let tracksHtml = ProductTracklistingFixture.debugElement.nativeElement.querySelectorAll('.track-name').forEach((element, index) => {
-        since('The track name in your HTML template doesn\'t match the track name in the JSON response.').expect(element.innerText).toEqual(json.album.tracks[index].trackName.toString());
-      });
-    } else {
-      since('The tracklisting data is not being populated by a JSON response yet.').expect(0).toBe(1);
-    }
-}));
+    assert(
+      li.length > 0,
+      "It doesn't look like that there is a `<li></li>` element."
+    );
 
-  it(`should use track time data from the albumInfo.tracks property in the HTML template @product-tracklisting-html-uses-track-object-data`, async(() => {
-    since('The ProductTracklistingComponent doesn\'t exist - have you run the `ng` command to generate it yet?').expect(productTracklistingExists).toBe(true);
+    assert(
+      li.length < 2,
+      "We shouldn't need more than one `<li></li>` element. We should be using the `ngFor` directive to generate the other list items."
+    );
 
-    mock_backend.connections.subscribe((connection: MockConnection) => {
-      let options = new ResponseOptions({
-        body: json
-      });
-      connection.mockRespond(new Response(options));
-    });
+    assert(
+      !!li.attr()["*ngfor"],
+      "It doesn't look like that the ProductTracklistingComponent is using the `ngFor` directive."
+    );
 
-    const ProductTracklistingFixture = TestBed.createComponent(ProductTracklistingComponent);
-    ProductTracklistingFixture.detectChanges();
+    assert(
+      li
+        .attr()
+        ["*ngfor"].match(/\s*let\s*track\s*of\s*albumInfo\?.album.tracks/),
+      "The `ngFor` directive doesn't have `let track of albumInfo?.album.tracks` as its value."
+    );
 
-    if (ProductTracklistingFixture.debugElement.nativeElement.querySelectorAll('.track-number').length > 1) {
-      let tracksHtml = ProductTracklistingFixture.debugElement.nativeElement.querySelectorAll('.track-time').forEach((element, index) => {
-        since('The track time in your HTML template doesn\'t match the track time in the JSON response.').expect(element.innerText).toEqual(json.album.tracks[index].trackLength.toString());
-      });
-    } else {
-      since('The tracklisting data is not being populated by a JSON response yet.').expect(0).toBe(1);
-    }
-  }));
+    assert(
+      trackNumber.hasClass("track-number"),
+      "The ProductTrackinglistComponent should have a `span` with a class of `track-number`."
+    );
 
-  it(`should use track price data from the albumInfo.tracks property in the HTML template @product-tracklisting-html-uses-track-object-data`, async(() => {
-    since('The ProductTracklistingComponent doesn\'t exist - have you run the `ng` command to generate it yet?').expect(productTracklistingExists).toBe(true);
+    assert(
+      trackNumber.text().match(/\s*{{\s*track.trackNumber\s*}}\s*/),
+      "The ProductTrackinglistComponent should have a `span` with a class of `track-number` with a text of `{{track.trackNumber}}`."
+    );
 
-    mock_backend.connections.subscribe((connection: MockConnection) => {
-      let options = new ResponseOptions({
-        body: json
-      });
-      connection.mockRespond(new Response(options));
-    });
+    assert(
+      trackName.hasClass("track-name"),
+      "The ProductTrackinglistComponent should have a `span` with a class of `track-name`."
+    );
 
-    const ProductTracklistingFixture = TestBed.createComponent(ProductTracklistingComponent);
-    ProductTracklistingFixture.detectChanges();
+    assert(
+      trackName.text().match(/\s*{{\s*track.trackName\s*}}\s*/),
+      "The ProductTrackinglistComponent should have a `span` with a class of `track-name` with a text of `{{track.trackName}}`."
+    );
 
-    if (ProductTracklistingFixture.debugElement.nativeElement.querySelectorAll('.track-number').length > 1) {
-      let tracksHtml = ProductTracklistingFixture.debugElement.nativeElement.querySelectorAll('.price-and-buy button').forEach((element, index) => {
-        since('The track price in your HTML template doesn\'t match the track price in the JSON response.').expect(element.innerText).toEqual(json.album.tracks[index].trackPrice.toString());
-      });
-    } else {
-      since('The tracklisting data is not being populated by a JSON response yet.').expect(0).toBe(1);
-    }
-  }));
-  
-});
+    assert(
+      trackTime.hasClass("track-time"),
+      "The ProductTrackinglistComponent should have a `span` with a class of `track-time`."
+    );
+
+    assert(
+      trackTime.text().match(/\s*{{\s*track.trackLength\s*}}\s*/),
+      "The ProductTrackinglistComponent should have a `span` with a class of `track-time` with a text of `{{track.trackLength}}`."
+    );
+
+    assert(
+      trackPrice.hasClass("price-and-buy"),
+      "The ProductTrackinglistComponent should have a `span` with a class of `price-and-buy`."
+    );
+
+    assert(
+      trackPrice.text().match(/\s*{{\s*track.trackPrice\s*}}\s*/),
+      "The ProductTrackinglistComponent should have a `span` with a class of `price-and-buy` with a text of `{{track.trackPrice}}`."
+    );
+  });
