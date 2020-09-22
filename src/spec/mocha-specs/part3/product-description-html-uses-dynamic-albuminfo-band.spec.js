@@ -1,4 +1,4 @@
-const assert = require("chai").assert;
+ const assert = require("chai").assert;
 const cheerio = require("cheerio");
 const parse5 = require("parse5");
 const helpers = require("../helpers");
