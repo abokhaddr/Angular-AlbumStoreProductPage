@@ -4,7 +4,7 @@ const cssom = require("cssom");
 const _ = require("lodash");
 
 describe("ProductTracklistingComponent", () => {
-  it("should have CSS that contains a ul selector @product-tracklisting-component-css2", () => {
+  it("should have CSS that contains an li selector @product-tracklisting-component-css3", () => {
     helpers.readFile(
       "src/app/product-tracklisting/product-tracklisting.component.css",
       "The ProductTracklistingComponent CSS file doesn't exist - have you run the `ng` command to generate it yet?"
@@ -23,34 +23,39 @@ describe("ProductTracklistingComponent", () => {
       );
     }
 
-    let ulRule = _.find(styles.cssRules, {
-      selectorText: "ul"
+    let liRule = _.find(styles.cssRules, {
+      selectorText: "li"
     });
 
     assert(
-      ulRule,
-      "There isn't an `ul` selector with its correct value in the ProductTracklistingComponent's CSS file right now."
+      liRule,
+      "There isn't a `li` selector with its correct value in the ProductTracklistingComponent's CSS file right now."
     );
   });
 
-  it(`should have CSS with a rule setting the list-style-type to none on the ul selector @product-tracklisting-component-css2`, () => {
+  it(`should have CSS with a rule setting the display to block and the line-height to 30px on the li selector @product-tracklisting-component-css3`, () => {
     const productTracklistingFile = helpers.readFile(
       "src/app/product-tracklisting/product-tracklisting.component.css"
     );
     const styles = cssom.parse(productTracklistingFile);
 
-    let ulRule = _.find(styles.cssRules, {
-      selectorText: "ul"
+    let liRule = _.find(styles.cssRules, {
+      selectorText: "li"
     });
 
     assert(
-      ulRule,
-      "There isn't an `ul` selector with its correct value in the ProductTracklistingComponent's CSS file right now."
+      liRule,
+      "There isn't a `li` selector with its correct value in the ProductTracklistingComponent's CSS file right now."
     );
 
     assert(
-      ulRule.style["list-style-type"] === "none",
-      "Your `ul` tag selector doesn't have a `list-style-type` property that's equal to `none`."
+      liRule.style["display"] === "block",
+      "Your `li` tag selector doesn't have a `display` property that's equal to `block`."
+    );
+
+    assert(
+      liRule.style["line-height"] === "30px",
+      "Your `li` tag selector doesn't have a `line-height` property that's equal to `30px`."
     );
   });
 });
