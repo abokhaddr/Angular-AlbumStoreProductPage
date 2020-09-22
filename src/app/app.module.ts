@@ -10,7 +10,8 @@ import { ProductDescriptionComponent } from './product-description/product-descr
 @NgModule({
   declarations: [
     AppComponent,
-    ProductPageComponent
+
+    
     ProductPageComponent,
     ProductDescriptionComponent
   ],
