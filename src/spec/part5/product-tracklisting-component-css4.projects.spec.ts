@@ -1,56 +1,38 @@
-const assert = require("chai").assert;
-const helpers = require("../helpers");
-const cssom = require("cssom");
-const _ = require("lodash");
+ import { TestBed, async } from '@angular/core/testing';
 
-describe("ProductTracklistingComponent", () => {
-  it("should have CSS that contains a button selector @product-tracklisting-component-css4", () => {
-    helpers.readFile(
-      "src/app/product-tracklisting/product-tracklisting.component.css",
-      "The ProductTracklistingComponent CSS file doesn't exist - have you run the `ng` command to generate it yet?"
-    );
+const CSSOM = require('cssom');
+const _ = require('lodash');
 
-    const productTracklistingFile = helpers.readFile(
-      "src/app/product-tracklisting/product-tracklisting.component.css"
-    );
+let productTracklistingCssFileExists = false;
+let productTracklistingCssFile;
+try {
+  productTracklistingCssFile = require('../../app/product-tracklisting/product-tracklisting.component.css');
+  productTracklistingCssFileExists = true;
+} catch (e) {
+  productTracklistingCssFileExists = false;
+}
 
-    const styles = cssom.parse(productTracklistingFile);
+describe('ProductTracklisting', () => {
 
-    if (styles.cssRules.length == 0) {
-      assert(
-        false,
-        "The ProductTracklistingComponent file does not contain any CSS rules or there is a CSS syntax error."
-      );
+  it(`should have CSS that contains a button selector @product-tracklisting-component-css4`, async(() => {
+    since('The ProductTracklistingComponent hasn\'t been created yet.').expect(productTracklistingCssFileExists).toBe(true);
+    if(productTracklistingCssFileExists) {
+      let parsed = CSSOM.parse(productTracklistingCssFile);
+      since('There isn\'t a `button` selector in the ProductTracklistingComponent\'s CSS file right now.').expect(_.find(parsed.cssRules, {selectorText: 'button'})).not.toBeUndefined();
     }
+  }));
 
-    let buttonRule = _.find(styles.cssRules, {
-      selectorText: "button"
-    });
+  it(`should have CSS with a rule setting the line-height to 1 on the button selector @product-tracklisting-component-css4`, async(() => {
+    since('The ProductTracklistingComponent hasn\'t been created yet.').expect(productTracklistingCssFileExists).toBe(true);
+    if(productTracklistingCssFileExists) {
+      let parsed = CSSOM.parse(productTracklistingCssFile);
 
-    assert(
-      buttonRule,
-      "There isn't a `button` selector with its correct value in the ProductTracklistingComponent's CSS file right now."
-    );
-  });
+      let buttonRule = _.find(parsed.cssRules, { selectorText: 'button' })
 
-  it(`should have CSS with a rule setting the line-height to 1 on the button selector @product-tracklisting-component-css4`, () => {
-    const productTracklistingFile = helpers.readFile(
-      "src/app/product-tracklisting/product-tracklisting.component.css"
-    );
-    const styles = cssom.parse(productTracklistingFile);
-
-    let buttonRule = _.find(styles.cssRules, {
-      selectorText: "button"
-    });
-
-    assert(
-      buttonRule,
-      "There isn't a `button` selector with its correct value in the ProductTracklistingComponent's CSS file right now."
-    );
-
-    assert(
-      buttonRule.style["line-height"] === "1",
-      "Your `button` tag selector doesn't have a `line-height` property that's equal to `1`."
-    );
-  });
+      since('There isn\'t a `button` selector in the ProductTracklistingComponent\'s CSS file right now.').expect(buttonRule).not.toBeUndefined();
+      since('There isn\'t a `button` selector in the ProductTracklistingComponent\'s CSS file right now.').expect(buttonRule.style.parentRule.selectorText).toBe('button');
+      since('Your `button` selector doesn\'t have a `line-height` property that\'s equal to `1`.').expect(buttonRule.style['line-height']).toBe('1');
+    }
+  }));
+  
 });
