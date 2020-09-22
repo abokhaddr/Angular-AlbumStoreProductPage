@@ -1,71 +1,110 @@
-const assert = require("chai").assert;
-const parse5 = require("parse5");
-const cheerio = require("cheerio");
-const helpers = require("../helpers");
+ import { TestBed, async, inject } from '@angular/core/testing';
 
-describe("ProductTracklisting", () => {
-  it("should use ngFor to enumerate through each track in an li tag @product-tracklisting-html-uses-ngfor-to-enumerate-tracks", () => {
-    let tracklisting;
-    let element;
-    const productTracklistingFile = helpers.readFile(
-      "src/app/product-tracklisting/product-tracklisting.component.html"
-    );
-    const productTracklistingNodes = helpers.parseFile(productTracklistingFile);
-    productTracklistingNodes[0].attrs.find(
-      attr => (tracklisting = attr.value.match(/tracklisting/))
-    );
-    const productListing = parse5.serialize(productTracklistingNodes[0]);
-    let $ = cheerio.load(productListing);
-    const li = $("li");
+import { AppModule } from '../../app/app.module';
 
-    helpers.readFile(
-      "src/app/product-tracklisting/product-tracklisting.component.html",
-      "The ProductTracklistingComponent doesn't exist - have you run the `ng` command to generate it yet?"
-    );
+import { Http, BaseRequestOptions, Response, ResponseOptions, RequestOptions } from '@angular/http';
 
-    try {
-      element = productTracklistingNodes[0].tagName;
-    } catch (e) {
-      assert(
-        "The ProductTracklistingComponent's HTML file doesn't contain a `div` tag with a class of `tracklisting`."
-      );
+import { MockBackend, MockConnection } from '@angular/http/testing';
+
+import { Observable } from 'rxjs/Observable';
+
+import { Routes } from '@angular/router';
+
+import { RouterTestingModule } from '@angular/router/testing';
+
+let json = require('../../assets/album.json');
+
+let html;
+try {
+  html = require('../../app/product-tracklisting/product-tracklisting.component.html');
+} catch (e) { }
+
+let productTracklistingComponentExists = false;
+let ProductTracklistingComponent;
+try {
+  ProductTracklistingComponent = require('../../app/product-tracklisting/product-tracklisting.component.ts').ProductTracklistingComponent;
+  productTracklistingComponentExists = true;
+} catch (e) {
+  productTracklistingComponentExists = false;
+}
+
+let productServiceExists = false;
+let ProductService;
+try {
+  ProductService = require('../../app/product.service.ts').ProductService;
+  productServiceExists = true;
+} catch (e) {
+  productServiceExists = false;
+}
+
+let findComments = function(el) {
+    var arr = [];
+    for(var i = 0; i < el.childNodes.length; i++) {
+        var node = el.childNodes[i];
+        if(node.nodeType === 8) {
+            arr.push(node);
+        } else {
+            arr.push.apply(arr, findComments(node));
+        }
     }
+    return arr;
+};
 
-    assert(
-      element !== "p",
-      "It looks like you have not replaced the `<p></p>` element with a `div` tag with a class of `tracklisting`."
-    );
 
-    assert(
-      element === "div",
-      "The ProductTracklistingComponent's HTML file doesn't contain a `div` tag."
-    );
+describe('ProductTracklisting', () => {
 
-    assert(
-      !!tracklisting,
-      "It looks like the ProductTracklistingComponent does not contain the `tracklisting` `<div></div>` from the ProductPageComponent."
-    );
+  let product_service;
+  let mock_backend;
 
-    assert(
-      li.length > 0,
-      "It doesn't look like that there is a `<li></li>` element."
-    );
+  beforeEach(async(() => {
 
-    assert(
-      li.length < 2,
-      "We shouldn't need more than one `<li></li>` element. We should be using the `ngFor` directive to generate the other list items."
-    );
+    TestBed.configureTestingModule({
+      imports: [AppModule, RouterTestingModule.withRoutes([])],
+      providers: [ProductService, MockBackend, BaseRequestOptions,
+        {
+          provide: Http,
+          useFactory: (mockBackend: MockBackend, defaultOptions: RequestOptions) => {
+            return new Http(mockBackend, defaultOptions);
+          },
+          useClass: Http,
+          deps: [MockBackend, BaseRequestOptions]
+        }
+      ]
+    });
+  }));
 
-    assert(
-      !!li.attr()["*ngfor"],
-      "It doesn't look like that the ProductTracklistingComponent is using the `ngFor` directive."
-    );
+  beforeEach(inject([ProductService, MockBackend], (productService, mockBackend) => {
+    product_service = productService;
+    mock_backend = mockBackend;
+  }));
 
-    assert(
-      li
-        .attr()
-        ["*ngfor"].match(/\s*let\s*track\s*of\s*albumInfo\?.album.tracks/),
-      "The `ngFor` directive doesn't have `let track of albumInfo?.album.tracks` as its value."
-    );
-  });
+  it(`should use ngFor to enumerate through each track in an li tag @product-tracklisting-html-uses-ngfor-to-enumerate-tracks`, async(() => {
+    since('The ProductTracklistingComponent doesn\'t exist - have you run the `ng` command to generate it yet?').expect(productTracklistingComponentExists).toBe(true);
+
+    mock_backend.connections.subscribe((connection: MockConnection) => {
+      let options = new ResponseOptions({
+        body: json
+      });
+      connection.mockRespond(new Response(options));
+    });
+
+    const ProductTracklistingFixture = TestBed.createComponent(ProductTracklistingComponent);
+    ProductTracklistingFixture.detectChanges();
+
+    let comments = findComments(ProductTracklistingFixture.nativeElement);
+
+    since('The ProductTracklistingComponent doesn\'t have an unordered list with multiple list items.  Have you tried adding the `ngFor` directive to the `li` tag in the template yet?').expect(ProductTracklistingFixture.nativeElement.querySelectorAll('div.tracklisting ul li').length).toBeGreaterThan(1);
+    since('The ProductTracklistingComponent doesn\'t have an unordered list with multiple list items.  Have you tried adding the `ngFor` directive to the `li` tag in the template yet?').expect(comments.length).toBeGreaterThan(0);
+
+    let containsBinding = 0;    
+    if (comments.length > 0) {
+      comments.forEach(element => {
+        if (element.nodeValue.match('ng-reflect-ng-for-of')) {
+          containsBinding = containsBinding + 1;
+        }
+      });
+    }
+    since('The ProductTracklistingComponent has multiple list items, but it doesn\'t look like you\'re using the `ngFor` directive.').expect(containsBinding).toBe(1);
+  }));
+
 });
