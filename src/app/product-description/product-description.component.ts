@@ -1,16 +1,20 @@
- import { Injectable } from '@angular/core';
-import { Http, Response } from '@angular/http';
+ import { Component, OnInit } from '@angular/core';
 
-import 'rxjs/add/operator/map';
+import { ProductService } from '../product.service';
 
-@Injectable()
-export class ProductService {
+@Component({
+  selector: 'app-product-description',
+  templateUrl: './product-description.component.html',
+  styleUrls: ['./product-description.component.css']
+})
+export class ProductDescriptionComponent implements OnInit {
 
-  private _albumUrl = '../assets/album.json';
+  albumInfo;
 
-  constructor(private _http: Http) { }
+  constructor(private _productService: ProductService) { }
 
-  getAlbum(id: number) {
-    return this._http.get(this._albumUrl).map((response) => response.json());
+  ngOnInit() {
+    this._productService.getAlbum(1).subscribe(response => this.albumInfo = response);
   }
+
 }
