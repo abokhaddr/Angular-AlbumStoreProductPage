@@ -1,61 +1,39 @@
- const assert = require("chai").assert;
-const helpers = require("../helpers");
-const cssom = require("cssom");
-const _ = require("lodash");
+ import { TestBed, async } from '@angular/core/testing';
 
-describe("ProductTracklistingComponent", () => {
-  it("should have CSS that contains an li selector @product-tracklisting-component-css3", () => {
-    helpers.readFile(
-      "src/app/product-tracklisting/product-tracklisting.component.css",
-      "The ProductTracklistingComponent CSS file doesn't exist - have you run the `ng` command to generate it yet?"
-    );
+const CSSOM = require('cssom');
+const _ = require('lodash');
 
-    const productTracklistingFile = helpers.readFile(
-      "src/app/product-tracklisting/product-tracklisting.component.css"
-    );
+let productTracklistingCssFileExists = false;
+let productTracklistingCssFile;
+try {
+  productTracklistingCssFile = require('../../app/product-tracklisting/product-tracklisting.component.css');
+  productTracklistingCssFileExists = true;
+} catch (e) {
+  productTracklistingCssFileExists = false;
+}
 
-    const styles = cssom.parse(productTracklistingFile);
+describe('ProductTracklisting', () => {
 
-    if (styles.cssRules.length == 0) {
-      assert(
-        false,
-        "The ProductTracklistingComponent file does not contain any CSS rules or there is a CSS syntax error."
-      );
+  it(`should have CSS that contains an li selector @product-tracklisting-component-css3`, async(() => {
+    since('The ProductTracklistingComponent hasn\'t been created yet.').expect(productTracklistingCssFileExists).toBe(true);
+    if(productTracklistingCssFileExists) {
+      let parsed = CSSOM.parse(productTracklistingCssFile);
+      since('There isn\'t an `li` selector in the ProductTracklistingComponent\'s CSS file right now.').expect(_.find(parsed.cssRules, {selectorText: 'li'})).not.toBeUndefined();
     }
+  }));
 
-    let liRule = _.find(styles.cssRules, {
-      selectorText: "li"
-    });
+  it(`should have CSS with a rule setting the display to block and the line-height to 30px on the li selector @product-tracklisting-component-css3`, async(() => {
+    since('The ProductTracklistingComponent hasn\'t been created yet.').expect(productTracklistingCssFileExists).toBe(true);
+    if(productTracklistingCssFileExists) {
+      let parsed = CSSOM.parse(productTracklistingCssFile);
 
-    assert(
-      liRule,
-      "There isn't a `li` selector with its correct value in the ProductTracklistingComponent's CSS file right now."
-    );
-  });
+      let liRule = _.find(parsed.cssRules, { selectorText: 'li' })
 
-  it(`should have CSS with a rule setting the display to block and the line-height to 30px on the li selector @product-tracklisting-component-css3`, () => {
-    const productTracklistingFile = helpers.readFile(
-      "src/app/product-tracklisting/product-tracklisting.component.css"
-    );
-    const styles = cssom.parse(productTracklistingFile);
-
-    let liRule = _.find(styles.cssRules, {
-      selectorText: "li"
-    });
-
-    assert(
-      liRule,
-      "There isn't a `li` selector with its correct value in the ProductTracklistingComponent's CSS file right now."
-    );
-
-    assert(
-      liRule.style["display"] === "block",
-      "Your `li` tag selector doesn't have a `display` property that's equal to `block`."
-    );
-
-    assert(
-      liRule.style["line-height"] === "30px",
-      "Your `li` tag selector doesn't have a `line-height` property that's equal to `30px`."
-    );
-  });
+      since('There isn\'t an `li` selector in the ProductTracklistingComponent\'s CSS file right now.').expect(liRule).not.toBeUndefined();
+      since('There isn\'t an `li` selector in the ProductTracklistingComponent\'s CSS file right now.').expect(liRule.style.parentRule.selectorText).toBe('li');
+      since('Your `li` selector doesn\'t have a `display` property that\'s equal to `block`.').expect(liRule.style['display']).toBe('block');
+      since('Your `li` selector doesn\'t have a `line-height` property that\'s equal to `30px`.').expect(liRule.style['line-height']).toBe('30px');
+    }
+  }));
+  
 });
