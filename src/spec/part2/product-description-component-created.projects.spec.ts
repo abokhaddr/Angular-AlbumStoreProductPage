@@ -1,4 +1,4 @@
-import { TestBed, async } from '@angular/core/testing';
+ import { TestBed, async } from '@angular/core/testing';
 
 let productDescriptionComponentExists = false;
 let ProductDescriptionComponent;
